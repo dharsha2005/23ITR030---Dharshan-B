@@ -1,0 +1,11 @@
+{
+  "name": "backend-assessment",
+  "version": "1.0.0",
+  "description": "Backend assessment for vehicle scheduling and notification priority inbox.",
+  "main": "vehicle_maintenence_scheduler/scheduler.js",
+  "scripts": {
+    "schedule": "node \"vehicle_maintenence_scheduler/scheduler.js\"",
+    "priority-inbox": "node \"notification_app_be/priorityInbox.js\""
+  },
+  "type": "commonjs"
+}

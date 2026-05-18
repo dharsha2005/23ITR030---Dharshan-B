@@ -1,8 +1,11 @@
 # Logging Middleware
 
-This folder will contain the logging middleware required by the assessment.
+This folder contains the Node.js logging middleware used by both assessment services.
 
 Requirements:
 - Use this middleware in all backend code paths.
-- Avoid direct language logger calls or `console.log` outside the middleware.
+- Avoid direct logger calls outside of the middleware wrapper.
 - Log request/response details and errors consistently.
+
+Usage:
+- `const { logOperation, logger } = require('../logging middleware/loggingMiddleware');`

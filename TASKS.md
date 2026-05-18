@@ -33,12 +33,13 @@
 ## Current status
 
 - [x] Task tracker and workspace skeleton
-- [ ] Logging middleware scaffold
-- [ ] Vehicle scheduler implementation
-- [ ] Notification system design document
-- [ ] Priority inbox code
+- [x] Logging middleware scaffold
+- [x] Vehicle scheduler implementation
+- [x] Notification system design document
+- [x] Priority inbox code
 
 ## Notes
 
+- Implemented backend in Node.js per request.
 - This environment does not expose Git through the shell, so I cannot make actual commits here.
 - After each completed task, you should run `git add .` and `git commit -m "Complete <task name>"` locally.
