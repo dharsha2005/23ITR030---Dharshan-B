@@ -4,6 +4,9 @@ const { logger } = require('../logging middleware/loggingMiddleware');
 const NOTIFICATION_URL =
   'http://4.224.186.213/evaluation-service/notifications';
 
+const CLIENT_ID = process.env.CLIENT_ID || null;
+const CLIENT_SECRET = process.env.CLIENT_SECRET || null;
+
 const TYPE_WEIGHTS = {
   Placement: 10,
   Result: 8,
@@ -12,10 +15,20 @@ const TYPE_WEIGHTS = {
 
 // Fetch notifications from API
 function fetchJson(url, callback) {
-  logger('info', 'Fetching notifications from: ' + url);
+  const requestUrl = CLIENT_ID
+    ? `${url}${url.includes('?') ? '&' : '?'}clientId=${encodeURIComponent(CLIENT_ID)}`
+    : url;
+
+  if (CLIENT_ID) {
+    logger('info', 'Using client ID for request');
+  } else {
+    logger('warn', 'CLIENT_ID is not set; fetching without client ID');
+  }
+
+  logger('info', 'Fetching notifications from: ' + requestUrl);
 
   http
-    .get(url, (res) => {
+    .get(requestUrl, (res) => {
       let data = '';
 
       res.on('data', (chunk) => {
