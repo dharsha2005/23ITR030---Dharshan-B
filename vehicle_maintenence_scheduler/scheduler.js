@@ -1,4 +1,4 @@
-const http = require('http');
+﻿const http = require('http');
 const { logger } = require('../logging middleware/loggingMiddleware');
 
 const DEPOTS_URL = 'http://4.224.186.213/evaluation-service/depots';
@@ -8,7 +8,11 @@ function fetchJson(url, callback) {
   logger('info', 'Fetching JSON from: ' + url);
   http.get(url, (res) => {
     let data = '';
-    res.on('data', (chunk) => { data += chunk; });
+
+    res.on('data', (chunk) => {
+      data += chunk;
+    });
+
     res.on('end', () => {
       try {
         const json = JSON.parse(data);
@@ -56,21 +60,21 @@ function loadSampleData() {
       { TaskID: '436e87a6-2b5b-42b9-9c35-deaa2c8ef54e', Duration: 2, Impact: 3 },
       { TaskID: '0a823f1b-03c3-4722-af40-e17a79ee0ff', Duration: 2, Impact: 5 },
       { TaskID: '0bf780cb-1099-4f61-99bf-dec95a7063b6', Duration: 3, Impact: 10 },
-      { TaskID: 'e716fb11-1064-4db7-9d76-06d19f4f6f67', Duration: 5, Impact: 5 },
+      { TaskID: 'e716fb11-1064-4db7-9d76-06d19f4f67', Duration: 5, Impact: 5 },
       { TaskID: '60586e47-ab9c-407d-85ca-1215084f3f41', Duration: 8, Impact: 8 },
       { TaskID: '08635e52-dad5-4b78-8ab1-e55db53c0c18', Duration: 8, Impact: 5 },
       { TaskID: '871ddcf5-0bba-4233-bf12-c776c496e314', Duration: 7, Impact: 10 },
-      { TaskID: 'b57f17dc-db77-42bf-a7e9-8fec596ce498', Duration: 7, Impact: 1 },
+      { TaskID: 'b57f17dc-db77-42fe-a9e9-8fec596ce498', Duration: 7, Impact: 1 },
       { TaskID: '1d893de7-fbba-4c77-92b7-e3076fe805d5', Duration: 1, Impact: 8 },
-      { TaskID: '1743e1b5-9dfd-450b-9905-98c3e054aee1', Duration: 5, Impact: 8 },
+      { TaskID: '1743e1b5-9dfd-450b-9905-98c3e054aeea', Duration: 5, Impact: 8 },
       { TaskID: '48851915-eaf5-48ec-a20c-5074d7050c5f', Duration: 8, Impact: 8 },
       { TaskID: '7d81e6ca-8f03-4c4a-9ec0-701f820c5655', Duration: 7, Impact: 8 },
     ],
-  logger('info', 'Starting schedule computation with budget: ' + budget);
   };
 }
 
 function computeSchedule(tasks, budget) {
+  logger('info', 'Starting schedule computation with budget: ' + budget);
   const n = tasks.length;
   const dp = [];
 
@@ -113,8 +117,9 @@ function computeSchedule(tasks, budget) {
     totalDuration += selected[k].Duration;
     totalImpact += selected[k].Impact;
   }
-logger('info', 'Schedule computed: ' + selected.length + ' tasks selected, duration: ' + totalDuration + ', impact: ' + totalImpact);
-  
+
+  logger('info', 'Schedule computed: ' + selected.length + ' tasks selected, duration: ' + totalDuration + ', impact: ' + totalImpact);
+
   return {
     selected,
     totalDuration,
@@ -122,39 +127,40 @@ logger('info', 'Schedule computed: ' + selected.length + ' tasks selected, durat
   };
 }
 
-fulogger('warn', 'Using sample data because API failed.');
+function useSampleData(reason) {
+  logger('warn', 'Using sample data because: ' + reason);
   const sample = loadSampleData();
-  const totalBudget = sample.depots[0].MechanicHours + sample.depots[1].MechanicHours + sample.depots[2].MechanicHours + sample.depots[3].MechanicHours + sample.depots[4].MechanicHours;
-  logger('info', 'Total mechanic hours: ' + totalBudget)
-  const totalBudget = sample.depots[0].MechanicHours + sample.depots[1].MechanicHours + sample.depots[2].MechanicHours + sample.depots[3].MechanicHours + sample.depots[4].MechanicHours;
+  const totalBudget = sample.depots.reduce((sum, depot) => sum + depot.MechanicHours, 0);
+
+  logger('info', 'Total mechanic hours from sample data: ' + totalBudget);
   const schedule = computeSchedule(sample.vehicles, totalBudget);
-  console.log('Using sample data because API failed.');
+
+  console.log('===== Vehicle Scheduling Result (Sample Data) =====');
   console.log('Total mechanic hours:', totalBudget);
   console.log(JSON.stringify(schedule, null, 2));
 }
 
-fulogger('info', 'Starting Vehicle Maintenance Scheduler');
+function start() {
+  logger('info', 'Starting Vehicle Maintenance Scheduler');
+
   fetchJson(DEPOTS_URL, (error, depotResult) => {
     if (error) {
       logger('error', 'Failed to fetch depots API');
-      useSampleData();
+      useSampleData('depot API failure');
       return;
     }
 
     fetchJson(VEHICLES_URL, (error2, vehicleResult) => {
       if (error2) {
         logger('error', 'Failed to fetch vehicles API');
-        useSampleData();
+        useSampleData('vehicle API failure');
         return;
       }
 
-      let totalBudget = 0;
-      for (let i = 0; i < depotResult.depots.length; i += 1) {
-        totalBudget += depotResult.depots[i].MechanicHours;
-      }
-
+      const totalBudget = depotResult.depots.reduce((sum, depot) => sum + depot.MechanicHours, 0);
       logger('info', 'APIs fetched successfully. Total budget: ' + totalBudget);
       const schedule = computeSchedule(vehicleResult.vehicles, totalBudget);
+
       console.log('===== Vehicle Scheduling Result =====');
       console.log('Total mechanic hours:', totalBudget);
       console.log(JSON.stringify(schedule, null, 2));
@@ -162,6 +168,5 @@ fulogger('info', 'Starting Vehicle Maintenance Scheduler');
   });
 }
 
-logger('info', 'Scheduler application started');}
-
+logger('info', 'Scheduler application started');
 start();
