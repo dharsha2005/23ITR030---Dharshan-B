@@ -8,17 +8,21 @@ const TYPE_WEIGHTS = {
     Event: 5 
 };
 function fetchJson(url, callback) {
+  logger('info', 'Fetching notifications from: ' + url);
   http.get(url, (res) => {
     let data = '';
     res.on('data', (chunk) => { data += chunk; });
     res.on('end', () => {
       try {
+        logger('info', 'Successfully fetched notifications');
         callback(null, JSON.parse(data));
       } catch (error) {
+        logger('error', 'Failed to parse notifications: ' + error.message);
         callback(error);
       }
     });
   }).on('error', (error) => {
+    logger('error', 'Network error: ' + error.message);
     callback(error);
   });
 }
@@ -31,6 +35,7 @@ function parseTimestamp(timestamp) {
   return value;
 }
 function rankNotifications(notifications) {
+  logger('info', 'Starting to rank ' + notifications.length + ' notifications');
   for (let i = 0; i < notifications.length; i += 1) {
     const item = notifications[i];
     const weight = TYPE_WEIGHTS[item.Type] || 1;
@@ -39,7 +44,9 @@ function rankNotifications(notifications) {
     item.score = weight * 1000 + recency;
   }
   notifications.sort((a, b) => b.score - a.score);
-  return notifications.slice(0, 10);
+  const top10 = notifications.slice(0, 10);
+  logger('info', 'Ranking complete. Top 10 notifications selected');
+  return top10;
 }
 function sampleNotifications() {
   return [
@@ -54,19 +61,24 @@ function sampleNotifications() {
     { ID: 'cf2885a6-45ac-4ba0-b548-6e9e9d4c52c8', Type: 'Result', Message: 'project-review', Timestamp: '2026-04-22 17:49:54' },
     { ID: '8a7412bd-6065-4d09-8501-a37f11cc848b', Type: 'Placement', Message: 'Advanced Micro Devices Inc. hiring', Timestamp: '2026-04-22 17:49:42' },
   ];
-}
-
-function start() {
+}logger('info', 'Priority Inbox application started');
   fetchJson(NOTIFICATION_URL, (error, data) => {
     let notifications;
     if (error || !data || !data.notifications) {
       logger('warn', 'Cannot fetch notifications, using sample data.');
       notifications = sampleNotifications();
     } else {
+      logger('info', 'Fetched ' + data.notifications.length + ' notifications from API');
       notifications = data.notifications;
     }
     const topNotifications = rankNotifications(notifications);
     console.log('===== Top 10 Notifications =====');
+    console.log(JSON.stringify(topNotifications, null, 2));
+    logger('info', 'Priority Inbox processing complete');
+  });
+}
+
+logger('info', 'Initializing Priority Inbox');   console.log('===== Top 10 Notifications =====');
     console.log(JSON.stringify(topNotifications, null, 2));
   });
 }
